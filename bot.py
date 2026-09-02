@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from discord import app_commands
 import os
 import asyncio
+import urllib.parse
 from dotenv import load_dotenv
 from db import get_guild_config, save_guild_config, record_verified_member
 from web import run_web, set_verify_callback
@@ -350,6 +351,7 @@ async def setup_verify_cmd(interaction: discord.Interaction, role: discord.Role,
 @app_commands.checks.has_permissions(administrator=True)
 @app_commands.describe(channel="Target channel to post verification panel (defaults to current)")
 async def send_verify_panel_cmd(interaction: discord.Interaction, channel: discord.TextChannel = None):
+    await interaction.response.defer(ephemeral=True)
     target_channel = channel or interaction.channel
     guild = interaction.guild
     guild_config = get_guild_config(guild.id)
@@ -374,7 +376,7 @@ async def send_verify_panel_cmd(interaction: discord.Interaction, channel: disco
     embed.timestamp = discord.utils.utcnow()
 
     await target_channel.send(embed=embed, view=create_verify_view(guild.id))
-    await interaction.response.send_message(f"✅ Verification panel sent to {target_channel.mention}!", ephemeral=True)
+    await interaction.followup.send(f"✅ Verification panel sent to {target_channel.mention}!", ephemeral=True)
 
 async def trigger_verify_panel_send(guild_id: int, channel_id: int):
     try:
