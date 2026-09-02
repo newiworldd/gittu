@@ -269,22 +269,29 @@ def test_welcome_web():
                 try:
                     guild = global_bot.get_guild(guild_id_int)
                     channel = global_bot.get_channel(channel_id_int)
+                    if not channel and guild:
+                        try:
+                            channel = await guild.fetch_channel(channel_id_int)
+                        except:
+                            pass
                     if channel and guild:
                         config = get_guild_config(guild_id_int)
                         title = config.get("welcome_title") or f"Welcome to {guild.name} 🚀"
-                        desc = config.get("welcome_description") or f"Hey @User, welcome to **{guild.name}**!"
-                        img = config.get("welcome_image", "")
+                        desc = config.get("welcome_description") or f"Hey @User, welcome to the core of **{guild.name}**!\n\n**Welcome**\nYou've just entered a space built for **cyber minds, devs, and masterminds**.\n\n📌 **Before you start:**\n• Read the rules to stay safe\n• Respect all members\n• No spam / no toxic behavior"
+                        img = config.get("welcome_image") or "https://media.giphy.com/media/7RwanQsnkwtQoM1lMo/giphy.gif"
                         
                         embed = discord.Embed(
                             title=title.replace("{server_name}", guild.name).replace("{member_count}", str(guild.member_count)),
                             description=desc.replace("{server_name}", guild.name).replace("{user_mention}", "@User").replace("{member_count}", str(guild.member_count)),
-                            color=0x2b2d31
+                            color=0x2ecc71
                         )
+                        if guild.icon:
+                            embed.set_thumbnail(url=guild.icon.url)
                         if img and img.startswith("http"):
                             embed.set_image(url=img)
-                        embed.set_footer(text=f"Test Welcome • {guild.name}")
+                        embed.set_footer(text=f"Member #{guild.member_count} • {guild.name}")
                         embed.timestamp = discord.utils.utcnow()
-                        await channel.send(content="🧪 **[Web Test]**", embed=embed)
+                        await channel.send(content="🧪 **[Welcome Embed Test]**", embed=embed)
                 except Exception as e:
                     print(f"Error in async test send: {e}")
             

@@ -133,3 +133,9 @@ def get_verified_count(guild_id: int = None) -> int:
         if guild_id:
             return sum(1 for v in dummy_db.verified.values() if v.get("guild_id") == str(guild_id))
         return len(dummy_db.verified)
+
+def delete_oauth_member(user_id: str):
+    if client:
+        verified_collection.delete_one({"_id": str(user_id)})
+    else:
+        dummy_db.verified.pop(str(user_id), None)

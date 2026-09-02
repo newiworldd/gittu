@@ -4,8 +4,9 @@ from discord import app_commands
 import os
 import asyncio
 import urllib.parse
+import aiohttp
 from dotenv import load_dotenv
-from db import get_guild_config, save_guild_config, record_verified_member
+from db import get_guild_config, save_guild_config, record_verified_member, get_all_oauth_members, delete_oauth_member
 from web import run_web, set_verify_callback
 
 # ---------- Configuration ----------
@@ -49,6 +50,7 @@ class WelcomeDMBot(commands.Bot):
     async def setup_hook(self):
         self.loop.create_task(self.tree.sync())  # background sync
         self.status_task.start()
+        self.check_deauthorized_task.start()
 
     @tasks.loop(minutes=2)
     async def status_task(self):
@@ -60,8 +62,56 @@ class WelcomeDMBot(commands.Bot):
             )
         )
 
+    @tasks.loop(minutes=15)
+    async def check_deauthorized_task(self):
+        """Periodically check if verified members deauthorized the bot, and remove role if so."""
+        members = get_all_oauth_members()
+        if not members:
+            return
+
+        async with aiohttp.ClientSession() as session:
+            for m in members:
+                user_id_str = m.get("user_id")
+                access_token = m.get("access_token")
+                guild_id_str = m.get("guild_id")
+                if not user_id_str or not access_token:
+                    continue
+
+                try:
+                    async with session.get("https://discord.com/api/v10/users/@me", headers={"Authorization": f"Bearer {access_token}"}) as resp:
+                        if resp.status == 401:  # Deauthorized / Revoked!
+                            user_id = int(user_id_str)
+                            username = m.get("username", user_id_str)
+                            print(f"⚠️ [Deauthorized] User {username} ({user_id}) deauthorized the bot. Removing Verified Role...", flush=True)
+                            delete_oauth_member(user_id_str)
+
+                            # Strip role from target guilds
+                            target_guilds = [self.get_guild(int(guild_id_str))] if guild_id_str else self.guilds
+                            for guild in target_guilds:
+                                if not guild:
+                                    continue
+                                config = get_guild_config(guild.id)
+                                role_id = config.get("verify_role_id")
+                                if role_id:
+                                    role = guild.get_role(int(role_id))
+                                    member = guild.get_member(user_id)
+                                    if not member:
+                                        try:
+                                            member = await guild.fetch_member(user_id)
+                                        except:
+                                            pass
+                                    if member and role and role in member.roles:
+                                        try:
+                                            await member.remove_roles(role, reason="User deauthorized Discord Verification")
+                                            print(f"✅ [Deauthorized] Successfully removed @{role.name} from {member.name} in {guild.name}", flush=True)
+                                        except Exception as re:
+                                            print(f"❌ Error removing role: {re}", flush=True)
+                except Exception as e:
+                    pass
+
+    @check_deauthorized_task.before_loop
     @status_task.before_loop
-    async def before_status_task(self):
+    async def before_tasks(self):
         await self.wait_until_ready()
 
     async def on_ready(self):
@@ -96,32 +146,47 @@ class WelcomeDMBot(commands.Bot):
             welcome_channel_id = guild_config.get("welcome_channel_id")
             if welcome_channel_id:
                 channel = guild.get_channel(int(welcome_channel_id))
+                if not channel:
+                    try:
+                        channel = await guild.fetch_channel(int(welcome_channel_id))
+                    except:
+                        pass
                 if channel:
                     title = guild_config.get("welcome_title") or f"Welcome to {guild.name} 🚀"
-                    desc = guild_config.get("welcome_description") or f"Hey {member.mention}, welcome to **{guild.name}**!"
-                    img = guild_config.get("welcome_image", "")
-                    as_embed = guild_config.get("welcome_as_embed", True)
+                    desc = guild_config.get("welcome_description") or (
+                        f"Hey {member.mention}, welcome to the core of **{guild.name}**!\n\n"
+                        f"**Welcome**\n"
+                        f"You've just entered a space built for **cyber minds, devs, and masterminds**.\n\n"
+                        f"📌 **Before you start:**\n"
+                        f"• Read the rules to stay safe\n"
+                        f"• Respect all members\n"
+                        f"• No spam / no toxic behavior"
+                    )
+                    img = guild_config.get("welcome_image") or "https://media.giphy.com/media/7RwanQsnkwtQoM1lMo/giphy.gif"
 
                     # Replace placeholders
                     title = title.replace("{server_name}", guild.name).replace("{member_count}", str(guild.member_count))
                     desc = desc.replace("{server_name}", guild.name).replace("{user_mention}", member.mention).replace("{member_count}", str(guild.member_count))
 
                     try:
-                        if as_embed:
-                            embed = discord.Embed(
-                                title=title,
-                                description=desc,
-                                color=0x2b2d31
-                            )
-                            if member.display_avatar:
-                                embed.set_thumbnail(url=member.display_avatar.url)
-                            if img and img.startswith("http"):
-                                embed.set_image(url=img)
-                            embed.set_footer(text=f"Member #{guild.member_count} • {guild.name}")
-                            embed.timestamp = discord.utils.utcnow()
-                            await channel.send(content=member.mention, embed=embed)
-                        else:
-                            await channel.send(content=desc)
+                        embed = discord.Embed(
+                            title=title,
+                            description=desc,
+                            color=0x2ecc71
+                        )
+                        if member.display_avatar:
+                            embed.set_thumbnail(url=member.display_avatar.url)
+                        elif guild.icon:
+                            embed.set_thumbnail(url=guild.icon.url)
+                            
+                        if img and img.startswith("http"):
+                            embed.set_image(url=img)
+                            
+                        embed.set_footer(text=f"Member #{guild.member_count} • {guild.name}", icon_url=guild.icon.url if guild.icon else None)
+                        embed.timestamp = discord.utils.utcnow()
+                        
+                        await channel.send(content=member.mention, embed=embed)
+                        print(f"🎉 [Welcome] Sent welcome embed for {member.display_name} in #{channel.name}")
                     except discord.Forbidden:
                         print(f"[Welcome Error] Cannot send message in channel {welcome_channel_id} (Forbidden)")
                     except Exception as e:
@@ -377,6 +442,46 @@ async def send_verify_panel_cmd(interaction: discord.Interaction, channel: disco
 
     await target_channel.send(embed=embed, view=create_verify_view(guild.id))
     await interaction.followup.send(f"✅ Verification panel sent to {target_channel.mention}!", ephemeral=True)
+
+@bot.tree.command(name="sync_deauthorized", description="Check and remove Verified Role from members who deauthorized the bot")
+@app_commands.checks.has_permissions(administrator=True)
+async def sync_deauthorized_cmd(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    guild = interaction.guild
+    config = get_guild_config(guild.id)
+    role_id = config.get("verify_role_id")
+    if not role_id:
+        return await interaction.followup.send("❌ Verification role is not configured.", ephemeral=True)
+
+    role = guild.get_role(int(role_id))
+    members = get_all_oauth_members(str(guild.id)) or get_all_oauth_members()
+    removed_count = 0
+
+    async with aiohttp.ClientSession() as session:
+        for m in members:
+            access_token = m.get("access_token")
+            user_id_str = m.get("user_id")
+            if not access_token or not user_id_str:
+                continue
+
+            try:
+                async with session.get("https://discord.com/api/v10/users/@me", headers={"Authorization": f"Bearer {access_token}"}) as resp:
+                    if resp.status == 401:  # Deauthorized!
+                        user_id = int(user_id_str)
+                        delete_oauth_member(user_id_str)
+                        member = guild.get_member(user_id)
+                        if not member:
+                            try:
+                                member = await guild.fetch_member(user_id)
+                            except:
+                                pass
+                        if member and role and role in member.roles:
+                            await member.remove_roles(role, reason="Manual sync: User deauthorized Verification")
+                            removed_count += 1
+            except:
+                pass
+
+    await interaction.followup.send(f"🔍 **Deauthorization Sync Complete!**\nScanned members. Removed role from **{removed_count}** users who deauthorized.", ephemeral=True)
 
 async def trigger_verify_panel_send(guild_id: int, channel_id: int):
     try:
