@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage {{ guild.name }} | Welcome & DM Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .manage-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 30px;
+            margin-bottom: 25px;
+        }
+        .server-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .server-meta img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #ff3344;
+        }
+        .tabs-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .tab-btn.active {
+            background: rgba(255, 51, 68, 0.15);
+            border-color: #ff3344;
+            color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        @media (max-width: 900px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .settings-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .form-control {
+            width: 100%;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #ff3344;
+        }
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3f3f46;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff3344;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        .discord-preview {
+            background: #2b2d31;
+            border-left: 4px solid #ff3344;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 15px;
+            color: #dcddde;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .discord-preview-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .discord-preview-desc {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            color: #dbdee1;
+        }
+        .discord-preview-img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .tag-pill {
+            display: inline-block;
+            background: rgba(255, 51, 68, 0.2);
+            color: #ff6b7a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="manage-container">
+        
+        <!-- Header -->
+        <div class="header-bar">
+            <div class="server-meta">
+                <img src="{{ guild.icon_url }}" alt="{{ guild.name }}">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 1.3rem;">{{ guild.name }}</h2>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">
+                        {% if guild.bot_in_server %}
+                            <span style="color: #10b981;">● Bot Connected</span>
+                        {% else %}
+                            <span style="color: #ef4444;">● Bot Not In Server</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div>
+                <a href="/dashboard" class="btn btn-secondary">← Back to Servers</a>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="openTab('welcome-tab', this)">
+                🎉 Server Welcome Embed
+            </button>
+            <button class="tab-btn" onclick="openTab('public-welcome-tab', this)">
+                💬 Public Chat Welcome
+            </button>
+            <button class="tab-btn" onclick="openTab('dm-tab', this)">
+                📩 DM Welcome System
+            </button>
+            <button class="tab-btn" onclick="openTab('autorole-tab', this)">
+                🎭 Auto-Role
+            </button>
+            <button class="tab-btn" onclick="openTab('verify-tab', this)">
+                🛡️ Member Verification
+            </button>
+            <button class="tab-btn" onclick="openTab('leave-tab', this)">
+                🚪 Member Leave Log
+            </button>
+        </div>
+
+        <!-- 1. Server Welcome Tab -->
+        <div id="welcome-tab" class="tab-content active">
+            <div class="card-grid">
+                <div class="settings-card">
+                    <form action="/set_welcome" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3 style="margin:0;">Server Welcome Embed</h3>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="welcome_enabled" {% if guild.config.welcome_enabled %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Welcome Channel</label>
+                            <select name="channel_id" class="form-control">
+                                <option value="">-- Select Channel --</option>
+                                {% for ch in guild.channels %}
+                                <option value="{{ ch.id }}" {% if guild.config.welcome_channel_id == ch.id %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Embed Title</label>
+                            <input type="text" name="welcome_title" class="form-control" value="{{ guild.config.welcome_title }}" placeholder="Welcome to {server_name} 🚀">
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Variables: <span class="tag-pill">{server_name}</span> <span class="tag-pill">{member_count}</span></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Embed Description</label>
+                            <textarea name="welcome_description" class="form-control" placeholder="Hey {user_mention}, welcome to {server_name}!">{{ guild.config.welcome_description }}</textarea>
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Variables: <span class="tag-pill">{user_mention}</span> <span class="tag-pill">{server_name}</span> <span class="tag-pill">{member_count}</span></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Image / GIF URL</label>
+                            <input type="text" name="welcome_image" class="form-control" value="{{ guild.config.welcome_image }}" placeholder="https://media.giphy.com/...">
+                        </div>
+
+                        <div style="display:flex; gap:10px; margin-top:25px;">
+                            <button type="submit" class="btn btn-primary" style="flex:1;">Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="settings-card">
+                    <h3 style="margin-top:0;">Live Discord Preview</h3>
+                    <p style="color:var(--text-muted); font-size:0.85rem;">This is a live visual representation of how your welcome embed appears in Discord:</p>
+                    
+                    <div class="discord-preview">
+                        <div class="discord-preview-title">{{ guild.config.welcome_title or 'Welcome to ' + guild.name }}</div>
+                        <div class="discord-preview-desc">{{ guild.config.welcome_description or 'Welcome to the server!' }}</div>
+                        {% if guild.config.welcome_image %}
+                        <img src="{{ guild.config.welcome_image }}" alt="Banner Preview" class="discord-preview-img">
+                        {% endif %}
+                    </div>
+
+                    <form action="/test_welcome_web" method="POST" style="margin-top:20px;">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        <input type="hidden" name="channel_id" value="{{ guild.config.welcome_channel_id }}">
+                        <button type="submit" class="btn btn-secondary" style="width:100%;" {% if not guild.config.welcome_channel_id %}disabled{% endif %}>
+                            🧪 Send Test Welcome to Discord Channel
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Public Chat Welcome Tab -->
+        <div id="public-welcome-tab" class="tab-content">
+            <div class="settings-card" style="max-width: 700px;">
+                <form action="/set_public_chat_welcome" method="POST">
+                    <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin:0;">Public Chat Welcome Tagger</h3>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin: 4px 0 0 0;">Tags the newcomer in general chat and automatically deletes after 5 seconds to keep chat clean.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="public_chat_welcome_enabled" {% if guild.config.public_chat_welcome_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>General / Chat Channel</label>
+                        <select name="channel_id" class="form-control">
+                            <option value="">-- Select Channel --</option>
+                            {% for ch in guild.channels %}
+                            <option value="{{ ch.id }}" {% if guild.config.public_chat_welcome_channel_id == ch.id %}selected{% endif %}>#{{ ch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message Content</label>
+                        <textarea name="public_chat_welcome_message" class="form-control">{{ guild.config.public_chat_welcome_message }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Public Chat Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. DM Welcome Tab -->
+        <div id="dm-tab" class="tab-content">
+            <div class="settings-card" style="max-width: 750px;">
+                <form action="/set_dm_welcome" method="POST">
+                    <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin:0;">Direct Message (DM) Welcome</h3>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin: 4px 0 0 0;">Sends an inbox message immediately to new users with server info or price lists.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="dm_welcome_enabled" {% if guild.config.dm_welcome_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Direct Message Body (Markdown supported)</label>
+                        <textarea name="dm_welcome_message" class="form-control" style="min-height: 180px;">{{ guild.config.dm_welcome_message }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Interactive Button Link (e.g., ticket channel or website)</label>
+                        <input type="text" name="dm_welcome_ticket_link" class="form-control" value="{{ guild.config.dm_welcome_ticket_link or '' }}" placeholder="https://discord.com/channels/...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>DM Banner Image URL</label>
+                        <input type="text" name="dm_welcome_image" class="form-control" value="{{ guild.config.dm_welcome_image or '' }}" placeholder="https://media.giphy.com/...">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save DM Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4. Auto-Role Tab -->
+        <div id="autorole-tab" class="tab-content">
+            <div class="settings-card" style="max-width: 600px;">
+                <form action="/set_autorole" method="POST">
+                    <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin:0;">Auto-Role Assignment</h3>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin: 4px 0 0 0;">Automatically assigns a specific member role when someone joins.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="autorole_enabled" {% if guild.config.autorole_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Role</label>
+                        <select name="autorole_role_id" class="form-control">
+                            <option value="">-- Select Role --</option>
+                            {% for role in guild.roles %}
+                            <option value="{{ role.id }}" {% if guild.config.autorole_role_id == role.id %}selected{% endif %}>@{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Auto-Role</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 5. Leave Module Tab -->
+        <div id="leave-tab" class="tab-content">
+            <div class="settings-card" style="max-width: 650px;">
+                <form action="/set_leave_config" method="POST">
+                    <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin:0;">Member Leave Announcements</h3>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin: 4px 0 0 0;">Sends an announcement or logs whenever a member departs.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="leave_enabled" {% if guild.config.leave_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Leave Log Channel</label>
+                        <select name="channel_id" class="form-control">
+                            <option value="">-- Select Channel --</option>
+                            {% for ch in guild.channels %}
+                            <option value="{{ ch.id }}" {% if guild.config.leave_channel_id == ch.id %}selected{% endif %}>#{{ ch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Leave Message Text</label>
+                        <input type="text" name="leave_message" class="form-control" value="{{ guild.config.leave_message }}" placeholder="**{username}** has left the server. 😢">
+                        <small style="color:var(--text-muted); font-size:0.75rem;">Variables: <span class="tag-pill">{username}</span> <span class="tag-pill">{user_mention}</span> <span class="tag-pill">{server_name}</span> <span class="tag-pill">{member_count}</span></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Leave Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 6. Member Verification System Tab -->
+        <div id="verify-tab" class="tab-content">
+            <div class="card-grid">
+                <div class="settings-card">
+                    <form action="/set_verify_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <div>
+                                <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+                                    🛡️ Member Verification
+                                    <span class="tag-pill" style="background:rgba(46,204,113,0.15); color:#2ecc71; border:1px solid #2ecc71; font-size:0.75rem;">
+                                        ● {{ guild.verified_count }} Verified Members
+                                    </span>
+                                </h3>
+                                <p style="color:var(--text-muted); font-size:0.85rem; margin: 4px 0 0 0;">Requires new members to click a Verify button before unlocking the server.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="verify_enabled" {% if guild.config.verify_enabled %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Verification Channel (Where the button will stay)</label>
+                            <select name="channel_id" class="form-control">
+                                <option value="">-- Select Channel --</option>
+                                {% for ch in guild.channels %}
+                                <option value="{{ ch.id }}" {% if guild.config.verify_channel_id == ch.id %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Verified Role (Role to give on button click)</label>
+                            <select name="role_id" class="form-control">
+                                <option value="">-- Select Role --</option>
+                                {% for role in guild.roles %}
+                                <option value="{{ role.id }}" {% if guild.config.verify_role_id == role.id %}selected{% endif %}>@{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Embed Title</label>
+                            <input type="text" name="verify_title" class="form-control" value="{{ guild.config.verify_title }}" placeholder="🛡️ Member Verification System">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Embed Description</label>
+                            <textarea name="verify_description" class="form-control" rows="4">{{ guild.config.verify_description }}</textarea>
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Variables: <span class="tag-pill">{server_name}</span></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Embed Banner/Image URL</label>
+                            <input type="text" name="verify_image" class="form-control" value="{{ guild.config.verify_image }}" placeholder="https://media.giphy.com/...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Save Verification Settings</button>
+                    </form>
+                </div>
+
+                <!-- Live Preview & Action Card -->
+                <div class="settings-card">
+                    <h3 style="margin-top:0; margin-bottom:15px;">Live Verification Panel Preview</h3>
+                    
+                    <div style="background-color: #2b2d31; border-left: 4px solid #2ecc71; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                        <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 8px;">
+                            {{ guild.config.verify_title or '🛡️ Member Verification System' }}
+                        </div>
+                        <div style="color: #dbdee1; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; margin-bottom: 12px;">{{ guild.config.verify_description or 'Click the Verify Now button below to get access to all channels.' }}</div>
+                        {% if guild.config.verify_image %}
+                        <img src="{{ guild.config.verify_image }}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 12px;" alt="Banner">
+                        {% endif %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn" style="background: #248046; color: #fff; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: default; border: none; display: flex; align-items: center; gap: 6px;">
+                                🛡️ Verify Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border); padding-top: 18px;">
+                        <h4 style="margin: 0 0 8px 0; color: #fff;">🚀 Post Verification Panel to Discord</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Sends this persistent verification embed with the functional OAuth2 button directly into your selected channel.</p>
+                        <form action="/send_verify_panel_web" method="POST" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                            <select name="channel_id" class="form-control" required style="flex: 1;">
+                                <option value="">-- Choose Channel --</option>
+                                {% for ch in guild.channels %}
+                                <option value="{{ ch.id }}" {% if guild.config.verify_channel_id == ch.id %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary" style="background: #2ecc71; border-color: #27ae60; color: #000; font-weight: 700;">
+                                Send Panel
+                            </button>
+                        </form>
+
+                        <div style="background: rgba(255, 51, 68, 0.08); border: 1px solid rgba(255, 51, 68, 0.2); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                            <h4 style="margin:0 0 6px 0; color: #ff3344; display:flex; align-items:center; gap:6px;">
+                                📥 OAuth2 Server Member Restore (Pull Members)
+                            </h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; margin-bottom: 12px;">
+                                If your Discord server ever gets deleted, banned, or you move to a new server, you can automatically pull and force-join all <strong>{{ guild.verified_count }}</strong> verified members into this server!
+                            </p>
+                            <form action="/pull_members" method="POST" onsubmit="return confirm('Are you sure you want to pull and join all verified members into this server?');">
+                                <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                                <button type="submit" class="btn" style="background: #ff3344; color: #fff; font-weight: 700; width: 100%; border: none; padding: 10px;">
+                                    ⚡ Pull / Restore All Verified Members Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>

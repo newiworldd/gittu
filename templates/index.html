@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anik X Suite | Welcome & DM Automation</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</head>
+<body>
+    <!-- Cursor Glow effect -->
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <span>Anik X<span class="brand-gg"> Welcome & DM</span></span>
+        </div>
+        <div class="navbar-actions">
+            <a href="https://discord.gg/8XT2BCJZTg" target="_blank" class="btn btn-discord">
+                <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor" style="margin-right: 8px;">
+                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.32-11.85,67.35,67.35,0,0,1-11.35-5.43c.95-.69,1.89-1.42,2.78-2.17a74.43,74.43,0,0,0,63.48,0c.89.75,1.83,1.48,2.78,2.17a67.43,67.43,0,0,1-11.35,5.43,77.91,77.91,0,0,0,7.32,11.85,105.56,105.56,0,0,0,32.8-16.15C129.58,52.41,124.4,28.85,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.43-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                </svg>
+                Discord
+            </a>
+            <a href="/login" class="btn btn-primary">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="hero-section">
+            <div class="hero-logo-container">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Hero Logo" class="hero-logo">
+                <div class="hero-badge">✨ WELCOME & DM SUITE</div>
+            </div>
+            <h1>Automate Your <span class="gradient-text">Member Onboarding</span></h1>
+            <p class="hero-description">The ultimate Discord onboarding and greeting suite. Send high-converting direct messages, custom welcome embeds, auto-assign roles, and track server exits with zero setup friction.</p>
+            
+            <div class="hero-buttons">
+                <a href="/login" class="btn btn-primary btn-large">
+                    Open Web Dashboard
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 8px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="https://discord.gg/8XT2BCJZTg" target="_blank" class="btn btn-secondary btn-large">
+                    Support Community
+                </a>
+            </div>
+        </div>
+
+        <section class="features-section">
+            <h2>Core Automation Features</h2>
+            <div class="features-grid">
+                
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <h3>Direct Message (DM) Greetings</h3>
+                    <p>Send personalized direct messages into new members' inboxes with rich embeds, interactive buttons, rules, and price lists.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                    <h3>Server Welcome & Auto-Role</h3>
+                    <p>Display custom welcome banners in your landing channel and automatically grant roles instantly to verified new members.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h3>Public Chat Ping & Leave Logs</h3>
+                    <p>Briefly greet new joiners in general chat with 5s self-deleting pings, and keep track of departures with the leave module.</p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="landing-footer">
+        <p>&copy; 2026 Anik X Suite. All rights reserved. <a href="/privacy" style="color:#72767d; margin: 0 10px;">Privacy</a> <a href="/terms" style="color:#72767d;">Terms</a></p>
+    </footer>
+
+    <script>
+        const glow = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.transform = `translate3d(${e.clientX - 125}px, ${e.clientY - 125}px, 0)`;
+            glow.style.opacity = '1';
+        });
+        document.addEventListener('mouseleave', () => {
+            glow.style.opacity = '0';
+        });
+    </script>
+</body>
+</html>

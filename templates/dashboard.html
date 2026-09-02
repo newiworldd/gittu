@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Selector | Welcome & DM Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .picker-container {
+            max-width: 900px;
+            margin: 80px auto;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .picker-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+        .server-picker-list {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .server-picker-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            width: 110px;
+        }
+        .server-picker-item:hover {
+            transform: translateY(-5px);
+            color: var(--text-main);
+        }
+        .server-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--bg-base);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .server-picker-item:hover .server-circle {
+            border-color: #ff3344;
+            box-shadow: 0 0 20px rgba(255, 51, 68, 0.4);
+        }
+        .server-circle.connected {
+            border-color: #10b981;
+        }
+        .server-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .server-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="picker-container">
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom: 20px; color:#ff3344; font-size:0.9rem; font-weight:700;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            WELCOME & DM DASHBOARD
+        </div>
+        
+        <h2 class="picker-header">Welcome, {{ user.username }}! Select a server to configure</h2>
+
+        {% if guilds %}
+        <div class="server-picker-list">
+            {% for guild in guilds %}
+            <a href="/manage/{{ guild.id }}" class="server-picker-item">
+                <div class="server-circle {% if guild.bot_in_server %}connected{% endif %}">
+                    {% if guild.icon_url %}
+                        <img src="{{ guild.icon_url }}" alt="{{ guild.name }}">
+                    {% else %}
+                        {{ guild.name[0] }}
+                    {% endif %}
+                </div>
+                <div class="server-name" title="{{ guild.name }}">{{ guild.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="color:var(--text-muted); padding:40px;">
+            No manageable servers found. You must have Administrator or Manage Server permissions.
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 50px;">
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</body>
+</html>
