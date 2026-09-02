@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript: #{{ data.channel_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #1e1f22;
+            --bg-chat: #313338;
+            --bg-sidebar: #2b2d31;
+            --text-main: #dbdee1;
+            --text-muted: #949ba4;
+            --text-link: #00a8fc;
+            --header-primary: #f2f3f5;
+            --border: #3f4147;
+            --accent: #5865f2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            color: var(--header-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-left h1 span {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .meta-badge {
+            background: rgba(88, 101, 242, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(88, 101, 242, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .chat-container {
+            flex: 1;
+            background-color: var(--bg-chat);
+            max-width: 1000px;
+            width: 100%;
+            margin: 30px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .chat-messages {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .message-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 4px 0;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background-color: #2b2d31;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .author-name {
+            color: var(--header-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .message-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .message-text {
+            font-size: 0.925rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .attachment {
+            margin-top: 8px;
+            max-width: 400px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .attachment img {
+            width: 100%;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            background-color: var(--bg-sidebar);
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-chat);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <h1>#{{ data.channel_name }} <span>in {{ data.guild_name }}</span></h1>
+            <p>Opener ID: {{ data.opener_id }} | Closed by: {{ data.closed_by }} on {{ data.closed_at }} UTC</p>
+        </div>
+        <div class="meta-badge">Closed Ticket Transcript</div>
+    </header>
+
+    <div class="chat-container">
+        <div class="chat-messages">
+            {% if data.messages %}
+                {% for msg in data.messages %}
+                <div class="message-group">
+                    <img class="avatar" src="{{ msg.avatar }}" alt="{{ msg.display_name }}'s Avatar">
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="author-name">{{ msg.display_name }}</span>
+                            <span class="message-time">{{ msg.time }}</span>
+                        </div>
+                        <div class="message-text">{{ msg.content }}</div>
+                        {% if msg.attachments %}
+                            {% for attach in msg.attachments %}
+                            <div class="attachment">
+                                {% if attach.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')) %}
+                                    <img src="{{ attach }}" alt="Attachment Image">
+                                {% else %}
+                                    <a href="{{ attach }}" target="_blank" style="color: var(--text-link); text-decoration: none;">📎 Attachment File</a>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">No messages in this transcript.</p>
+            {% endif %}
+        </div>
+        <footer class="footer">
+            &copy; 2026 Anik X Cheats. Ticket transcript powered by VΞLTRIX.
+        </footer>
+    </div>
+
+</body>
+</html>

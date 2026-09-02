@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Factor Authentication | Anik X Cheats</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 70px; margin-bottom: 24px; filter: drop-shadow(0 0 10px rgba(244,63,94,0.5));">
+            <h2 style="margin-top: 0; margin-bottom: 8px;">2FA Verification</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px;">Enter the code from your authenticator app.</p>
+            
+            {% if error %}
+            <div style="color: var(--danger); margin-bottom: 20px; font-size: 0.9rem; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.3);">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="POST" action="/admin_twofa">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <label class="label" style="text-align: left; display: block;">Verification Code</label>
+                    <input type="text" name="code" class="input-field" required placeholder="000000" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px;" maxlength="6" autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Verify Code</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

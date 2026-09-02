@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Anik X Cheats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .guild-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+        .guild-card:hover {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-2px);
+        }
+        .guild-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            border: 1px solid var(--border);
+        }
+        .guild-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: white;
+        }
+        .guild-info p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 50px;">
+                <h1 style="margin: 0; color: white;">Super Admin Portal</h1>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="openTwoFAModal()" class="btn btn-primary" style="background-color: {% if twofa_enabled %}#10b981{% else %}#f59e0b{% endif %}; border: none;">
+                    {% if twofa_enabled %}🛡️ 2FA Enabled{% else %}🔑 Setup 2FA{% endif %}
+                </button>
+                <a href="/admin_logout" class="btn btn-primary" style="background-color: #ef4444; border: none;">Logout</a>
+            </div>
+        </div>
+
+        <div class="stats" style="display: flex; gap: 20px; margin-bottom: 40px;">
+            <div style="background: var(--bg-base); padding: 25px; border-radius: var(--radius-lg); border: 1px solid var(--border); flex: 1;">
+                <h3 style="margin-top: 0; margin-bottom: 10px; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Total Servers</h3>
+                <h2 style="margin: 0; font-size: 36px; color: var(--primary);">{{ guilds|length }}</h2>
+            </div>
+            <div style="background: var(--bg-base); padding: 25px; border-radius: var(--radius-lg); border: 1px solid var(--border); flex: 1;">
+                <h3 style="margin-top: 0; margin-bottom: 10px; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Total Members</h3>
+                <h2 style="margin: 0; font-size: 36px; color: #10b981;">{{ total_members }}</h2>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 5px;">Server List</h2>
+        <p style="color: var(--text-muted); margin-top: 0; margin-bottom: 20px;">Here is the list of all servers the bot is currently monitoring.</p>
+        
+        <div class="grid">
+            {% for guild in guilds %}
+            <div class="guild-card">
+                {% if guild.icon_url %}
+                <img src="{{ guild.icon_url }}" alt="Icon" class="guild-icon">
+                {% else %}
+                <div class="guild-icon">{{ guild.name[0] }}</div>
+                {% endif %}
+                <div class="guild-info">
+                    <h3>{{ guild.name }}</h3>
+                    <p>ID: {{ guild.id }}</p>
+                    <p>Members: {{ guild.member_count }}</p>
+                    <a href="/admin/manage/{{ guild.id }}" class="btn btn-primary" style="margin-top: 10px; padding: 5px 15px; font-size: 12px; display: inline-block; background-color: var(--primary);">Manage Server</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+
+    </div>
+
+    <!-- 2FA Setup Modal -->
+    <div id="twofaModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-base); border: 1px solid var(--border); padding: 30px; border-radius: var(--radius-lg); max-width: 400px; width: 90%; text-align: center; color: white; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <button onclick="closeTwoFAModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">&times;</button>
+            <h3 id="modalTitle" style="margin-top: 0; margin-bottom: 20px;">Two-Factor Authentication</h3>
+            
+            <div id="twofaSetupContent">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Scan the QR code below using Google Authenticator, Authy, or any TOTP app.</p>
+                <div id="qrcodeContainer" style="margin: 20px auto; background: white; padding: 10px; width: 220px; height: 220px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                    <img id="qrcodeImg" src="" alt="QR Code" style="width: 200px; height: 200px;">
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Or enter secret key manually:<br><strong id="secretKeyText" style="color: var(--primary); font-family: monospace;"></strong></p>
+                
+                <div style="margin-top: 24px;">
+                    <input type="text" id="twofaCode" placeholder="Enter 6-digit code" class="input-field" style="text-align: center; font-size: 1.2rem; letter-spacing: 5px; margin-bottom: 15px;" maxlength="6">
+                    <div id="twofaError" style="color: var(--danger); font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
+                    <button onclick="verifyTwoFA()" class="btn btn-success" style="width: 100%;">Verify & Enable</button>
+                </div>
+            </div>
+
+            <div id="twofaDisableContent" style="display: none;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Enter your current 6-digit authenticator code to disable Two-Factor Authentication.</p>
+                <div style="margin-top: 24px;">
+                    <input type="text" id="disableCode" placeholder="Enter 6-digit code" class="input-field" style="text-align: center; font-size: 1.2rem; letter-spacing: 5px; margin-bottom: 15px;" maxlength="6">
+                    <div id="disableError" style="color: var(--danger); font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
+                    <button onclick="disableTwoFA()" class="btn btn-primary" style="width: 100%; background-color: #ef4444;">Verify & Disable 2FA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tempSecret = "";
+        const twofaEnabled = {{ 'true' if twofa_enabled else 'false' }};
+
+        function openTwoFAModal() {
+            document.getElementById('twofaModal').style.display = 'flex';
+            if (twofaEnabled) {
+                document.getElementById('modalTitle').innerText = "Disable 2FA";
+                document.getElementById('twofaSetupContent').style.display = 'none';
+                document.getElementById('twofaDisableContent').style.display = 'block';
+            } else {
+                document.getElementById('modalTitle').innerText = "Enable 2FA";
+                document.getElementById('twofaSetupContent').style.display = 'block';
+                document.getElementById('twofaDisableContent').style.display = 'none';
+                
+                // Fetch setup details from backend
+                fetch('/admin/2fa/setup')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.secret) {
+                            tempSecret = data.secret;
+                            document.getElementById('secretKeyText').innerText = data.secret;
+                            document.getElementById('qrcodeImg').src = data.qr_url;
+                        }
+                    });
+            }
+        }
+
+        function closeTwoFAModal() {
+            document.getElementById('twofaModal').style.display = 'none';
+            document.getElementById('twofaError').style.display = 'none';
+            document.getElementById('disableError').style.display = 'none';
+        }
+
+        function verifyTwoFA() {
+            const code = document.getElementById('twofaCode').value.trim();
+            if (code.length !== 6) {
+                showError('twofaError', 'Please enter a 6-digit code.');
+                return;
+            }
+            
+            fetch('/admin/2fa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `code=${code}&secret=${tempSecret}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('2FA successfully enabled!');
+                    window.location.reload();
+                } else {
+                    showError('twofaError', data.message || 'Invalid verification code.');
+                }
+            });
+        }
+
+        function disableTwoFA() {
+            const code = document.getElementById('disableCode').value.trim();
+            if (code.length !== 6) {
+                showError('disableError', 'Please enter a 6-digit code.');
+                return;
+            }
+            
+            fetch('/admin/2fa/disable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `code=${code}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('2FA successfully disabled!');
+                    window.location.reload();
+                } else {
+                    showError('disableError', data.message || 'Invalid verification code.');
+                }
+            });
+        }
+
+        function showError(elemId, msg) {
+            const elem = document.getElementById(elemId);
+            elem.innerText = msg;
+            elem.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

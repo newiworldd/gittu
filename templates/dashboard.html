@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Picker | Anik X Cheats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Source Code Security
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; }
+        };
+    </script>
+    <style>
+        .picker-container {
+            max-width: 900px;
+            margin: 100px auto;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            text-align: center;
+        }
+        .picker-header {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        .server-picker-list {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .server-picker-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+        .server-picker-item:hover {
+            transform: translateY(-5px);
+            color: var(--text-main);
+        }
+        .server-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--bg-base);
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .server-picker-item:hover .server-circle {
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.3);
+        }
+        .server-circle.connected {
+            border-color: var(--success);
+        }
+        .server-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .server-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #18181b, #09090b);">
+
+    <div class="picker-container">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 24px; color:var(--text-muted); font-size:0.875rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            Server picker
+        </div>
+        
+        <h2 class="picker-header">Hello, {{ user.username }}! Please select a server to get started</h2>
+
+        {% if guilds %}
+        <div class="server-picker-list">
+            {% for guild in guilds %}
+            <a href="/manage({{ guild.id }})" class="server-picker-item" onclick="window.location.href='/manage/{{ guild.id }}'; return false;">
+                <div class="server-circle {% if guild.bot_in_server %}connected{% endif %}">
+                    {% if guild.icon_url %}
+                        <img src="{{ guild.icon_url }}" alt="{{ guild.name }}">
+                    {% else %}
+                        {{ guild.name[0] }}
+                    {% endif %}
+                </div>
+                <div class="server-name" title="{{ guild.name }}">{{ guild.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="color:var(--text-muted); padding:40px;">
+            No manageable servers found. You must be an administrator in a server.
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 50px;">
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+
+</body>
+</html>

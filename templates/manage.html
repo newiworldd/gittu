@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage {{ guild.name }} | Anik X Cheats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Source Code Security
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; }
+        };
+    </script>
+    <style>
+        .settings-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .settings-section.active {
+            display: block;
+        }
+        .sidebar-server {
+            background: rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+        }
+        .sidebar-server img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <aside class="sidebar" style="width: 280px;">
+            <div class="sidebar-brand" style="margin-bottom: 24px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Anik X Cheats Logo" style="height: 40px; object-fit: contain;">
+            </div>
+            
+            <div class="sidebar-server">
+                {% if guild.icon_url %}
+                    <img src="{{ guild.icon_url }}" alt="Guild Icon">
+                {% else %}
+                    <div style="width:40px;height:40px;border-radius:50%;background:var(--bg-base);display:flex;align-items:center;justify-content:center;font-weight:bold;">{{ guild.name[0] }}</div>
+                {% endif %}
+                <div>
+                    <h4 style="font-size:0.875rem; margin:0;">{{ guild.name }}</h4>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Administrator</span>
+                </div>
+            </div>
+
+            <nav style="display: flex; flex-direction: column; flex: 1;">
+                <a href="{{ '/admin_dashboard' if is_super_admin else '/dashboard' }}" class="nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Back to Server Picker
+                </a>
+                
+                <div style="margin: 20px 0 8px 12px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                    Modules
+                </div>
+
+                <a href="#" class="nav-item active" onclick="switchSection(this, 'section-ticket')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    Ticket Panel Configuration
+                </a>
+                {% if is_super_admin %}
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-key-claim')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                    Key Claim Settings
+                </a>
+                {% endif %}
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-welcome')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Welcome Module
+                </a>
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-dm-welcome')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    DM Welcome Module
+                </a>
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-public-chat-welcome')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Public Chat Welcome
+                </a>
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-leave')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Leave Module
+                </a>
+                {% if is_super_admin %}
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-roles')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Role Management
+                </a>
+                {% endif %}
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-automod')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    AutoMod Settings
+                </a>
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-embed-sender')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    Embed Sender
+                </a>
+                
+                <div style="margin: 20px 0 8px 12px; font-size: 0.75rem; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px;">
+                    Premium & Spy
+                </div>
+
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-premium')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                    Crypto & Auto-Responder
+                </a>
+                <a href="#" class="nav-item" onclick="switchSection(this, 'section-logs')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Spy Logs & Transcripts
+                </a>
+                
+                <a href="https://discord.com/oauth2/authorize?client_id=1501022468079354068&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="nav-item" style="margin-top:20px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Invite Bot
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            
+            {% if not guild.bot_in_server %}
+            <div class="invite-overlay" style="border-radius:var(--radius-lg); border:1px solid var(--border);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                <h2>Bot Missing</h2>
+                <p>The bot is not in this server yet. Invite it to manage settings.</p>
+                <a href="https://discord.com/oauth2/authorize?client_id=1501022468079354068&permissions=8&integration_type=0&scope=bot+applications.commands&guild_id={{ guild.id }}" target="_blank" class="btn btn-primary">
+                    Invite Anik X Cheats
+                </a>
+            </div>
+            {% else %}
+            
+            <!-- SECTION: TICKET PANEL -->
+            <div id="section-ticket" class="settings-section active">
+                <div class="header-title">
+                    <h1>Ticket Panel Configuration</h1>
+                    <p>Customize the look and feel of your server's ticket panel.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_ticket_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group">
+                            <label class="label">Ticket Banner URL (Large image at bottom)</label>
+                            <input type="text" name="ticket_banner" class="input-field" placeholder="https://..." value="{{ guild.config.get('ticket_banner', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Ticket Logo URL (Small image in thumbnail)</label>
+                            <input type="text" name="ticket_logo" class="input-field" placeholder="https://..." value="{{ guild.config.get('ticket_logo', '') }}">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success" style="width: 100%; margin-top:10px;">Save Ticket Images</button>
+                    </form>
+
+                    <hr style="border:0; border-top:1px solid var(--border); margin: 30px 0;">
+
+                    <form action="/send_panel" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        {% if is_super_admin %}
+                        <input type="hidden" name="is_super_admin" value="1">
+                        {% endif %}
+                        <div class="form-group">
+                            <label class="label">Deploy Panel to Channel</label>
+                            <div class="form-row">
+                                <select name="channel_id" required class="input-field">
+                                    <option value="" disabled selected>Select channel...</option>
+                                    {% for ch in guild.channels %}
+                                        <option value="{{ ch.id }}">#{{ ch.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary" style="padding: 0 30px;">Deploy</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- SECTION: KEY CLAIM CONFIGURATION -->
+            {% if is_super_admin %}
+            <div id="section-key-claim" class="settings-section">
+                <div class="header-title">
+                    <h1>Key Claim Settings</h1>
+                    <p>Configure security rules for claiming license keys.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px; margin-bottom: 20px;">
+                    <form action="/set_key_claim_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        {% if is_super_admin %}
+                        <input type="hidden" name="is_super_admin" value="true">
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label class="label">Claim Channel</label>
+                            <select name="key_channel_id" class="input-field">
+                                <option value="">Disabled / Not Set</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('key_channel_id')|string == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">
+                                Set the channel where users can claim free keys using `!claimkey` or the trial button.
+                            </p>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label class="label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: white;">
+                                <input type="checkbox" name="claimkey_enabled" value="1" {% if guild.config.get('claimkey_enabled', True) %}checked{% endif %}>
+                                Enable Free Key Claiming
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">Save Key Claim Config</button>
+                    </form>
+                </div>
+
+                <!-- Claimed Keys Statistics Section -->
+                <div class="settings-panel" style="max-width: 700px; margin-top: 20px;">
+                    <h2 style="color: white; margin-bottom: 15px; font-size: 1.25rem;">Claimed Keys Log (Total Claims: {{ total_claims }})</h2>
+                    {% if claimed_keys %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted);">
+                                    <th style="padding: 10px;">User ID</th>
+                                    <th style="padding: 10px;">License Key</th>
+                                    <th style="padding: 10px;">Revealed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for claim in claimed_keys %}
+                                <tr style="border-bottom: 1px solid var(--border); color: white;">
+                                    <td style="padding: 10px;"><code>{{ claim.user_id }}</code></td>
+                                    <td style="padding: 10px;"><code style="color: #10b981;">{{ claim.key }}</code></td>
+                                    <td style="padding: 10px;">
+                                        {% if claim.revealed %}
+                                        <span style="color: #10b981;">Yes</span>
+                                        {% else %}
+                                        <span style="color: #ef4444;">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 14px;">No keys have been claimed in this server yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- SECTION: WELCOME MODULE -->
+            <div id="section-welcome" class="settings-section">
+                <div class="header-title">
+                    <h1>Welcome Module</h1>
+                    <p>Automatically welcome new members to your server.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_welcome" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; background: rgba(168, 85, 247, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(168, 85, 247, 0.2);">
+                            <input type="checkbox" name="welcome_enabled" id="welcome_enabled" {% if guild.config.get('welcome_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #a855f7;">
+                            <label for="welcome_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Welcome Embed Message</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Target Channel</label>
+                            <select name="channel_id" required class="input-field">
+                                <option value="" disabled {% if not guild.config.get('welcome_channel_id') %}selected{% endif %}>Select Welcome Channel</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('welcome_channel_id') == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Embed Title</label>
+                            <input type="text" name="welcome_title" class="input-field" placeholder="Welcome to {server_name}" value="{{ guild.config.get('welcome_title', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Embed Description (Use {user_mention}, {server_name})</label>
+                            <textarea name="welcome_description" class="input-field" rows="5">{{ guild.config.get('welcome_description', '') }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Image URL</label>
+                            <input type="text" name="welcome_image" class="input-field" placeholder="https://..." value="{{ guild.config.get('welcome_image', '') }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#a855f7;">Save Welcome Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: PUBLIC CHAT WELCOME -->
+            <div id="section-public-chat-welcome" class="settings-section">
+                <div class="header-title">
+                    <h1 style="color: #a855f7;">Public Chat Welcome</h1>
+                    <p>Mention and welcome users with a quick text message in your public chat channels.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_public_chat_welcome" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; background: rgba(168, 85, 247, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(168, 85, 247, 0.2);">
+                            <input type="checkbox" name="public_chat_welcome_enabled" id="public_chat_welcome_enabled" {% if guild.config.get('public_chat_welcome_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #a855f7;">
+                            <label for="public_chat_welcome_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Public Chat Welcome Message</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Target Public Chat/General Channel</label>
+                            <select name="channel_id" required class="input-field">
+                                <option value="" disabled {% if not guild.config.get('public_chat_welcome_channel_id') %}selected{% endif %}>Select Channel</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('public_chat_welcome_channel_id') == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Welcome Message (Plain Text, Use {user_mention}, {server_name})</label>
+                            <textarea name="public_chat_welcome_message" class="input-field" rows="4" required>{{ guild.config.get('public_chat_welcome_message', '') }}</textarea>
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">This message will be sent as a normal text chat message (not an embed) tagging the joining member.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#a855f7;">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: LEAVE MESSAGE -->
+            <div id="section-leave" class="settings-section">
+                <div class="header-title">
+                    <h1 style="color: #a855f7;">Leave Module 😢</h1>
+                    <p>Log or announce when a member leaves the server in a designated channel.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_leave_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; background: rgba(168, 85, 247, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(168, 85, 247, 0.2);">
+                            <input type="checkbox" name="leave_enabled" id="leave_enabled" {% if guild.config.get('leave_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #a855f7;">
+                            <label for="leave_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Leave Messages</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Target Leave Channel</label>
+                            <select name="channel_id" required class="input-field">
+                                <option value="" disabled {% if not guild.config.get('leave_channel_id') %}selected{% endif %}>Select Leave Channel</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('leave_channel_id') == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Leave Message (Plain Text, Use {username}, {server_name})</label>
+                            <textarea name="leave_message" class="input-field" rows="4" required>{{ guild.config.get('leave_message', '') }}</textarea>
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">This message will be sent when a user leaves the server. Note that because they have left, we cannot mention them with tags.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#a855f7;">Save Leave Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: DM WELCOME -->
+            <div id="section-dm-welcome" class="settings-section">
+                <div class="header-title">
+                    <h1>DM Welcome Module</h1>
+                    <p>Send a direct message to users when they join your server.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_dm_welcome" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:30px; background: rgba(16, 185, 129, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.2);">
+                            <input type="checkbox" name="dm_welcome_enabled" id="dm_welcome_enabled" {% if guild.config.get('dm_welcome_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: var(--success);">
+                            <label for="dm_welcome_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable DM Welcome Messages</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">DM Message (Use {user_mention}, {server_name})</label>
+                            <textarea name="dm_welcome_message" class="input-field" rows="5" placeholder="Welcome to {server_name}! We are thrilled to have you here. If you wish to purchase products, explore our cheats, or need support, please open a ticket below.">{{ guild.config.get('dm_welcome_message', '') }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Ticket Channel Link (Optional: Creates a 'Open a Ticket' button)</label>
+                            <input type="url" name="dm_welcome_ticket_link" class="input-field" placeholder="https://discord.com/channels/..." value="{{ guild.config.get('dm_welcome_ticket_link', '') }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">If provided, users will see a button to directly open a ticket.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">DM Image URL (Optional)</label>
+                            <input type="url" name="dm_welcome_image" class="input-field" placeholder="https://..." value="{{ guild.config.get('dm_welcome_image', '') }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Add an image or GIF to make your DM look stunning!</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#10b981;">Save DM Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: ROLE MANAGEMENT -->
+            {% if is_super_admin %}
+            <div id="section-roles" class="settings-section">
+                <div class="header-title">
+                    <h1>Role Management</h1>
+                    <p>Create new roles and assign them to users directly from the web.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px; margin-bottom: 24px;">
+                    <h3 style="margin-top:0; margin-bottom:16px;">Auto-Role Configuration</h3>
+                    <form action="/set_autorole" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:20px; background: rgba(16, 185, 129, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.2);">
+                            <input type="checkbox" name="autorole_enabled" id="autorole_enabled" {% if guild.config.get('autorole_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: var(--success);">
+                            <label for="autorole_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Auto-Role (on member join)</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Select Auto-Role</label>
+                            <select name="autorole_role_id" class="input-field">
+                                <option value="" {% if not guild.config.get('autorole_role_id') %}selected{% endif %}>None (Disabled)</option>
+                                {% for r in guild.roles %}
+                                    <option value="{{ r.id }}" {% if guild.config.get('autorole_role_id') == r.id|string %}selected{% endif %}>{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#3b82f6;">Save Auto-Role Settings</button>
+                    </form>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px; margin-bottom: 24px;">
+                    <h3 style="margin-top:0; margin-bottom:16px;">Create a New Role</h3>
+                    <form action="/create_role" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group">
+                            <label class="label">Role Name</label>
+                            <input type="text" name="role_name" required class="input-field" placeholder="e.g. VIP Member">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Role Color (Hex)</label>
+                            <input type="color" name="role_color" class="input-field" style="height: 45px; padding: 5px;" value="#ff0000">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#ef4444;">Create Role</button>
+                    </form>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <h3 style="margin-top:0; margin-bottom:16px;">Assign Role to User</h3>
+                    <form action="/assign_role" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group">
+                            <label class="label">User ID</label>
+                            <input type="text" name="user_id" required class="input-field" placeholder="e.g. 123456789012345678">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Right-click the user in Discord and select 'Copy User ID'</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Select Role</label>
+                            <select name="role_id" required class="input-field">
+                                <option value="" disabled selected>Select a role...</option>
+                                {% for r in guild.roles %}
+                                    <option value="{{ r.id }}">{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#3b82f6;">Assign Role</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- SECTION: PREMIUM CONFIG -->
+            <div id="section-premium" class="settings-section">
+                <div class="header-title">
+                    <h1 style="color: #fbbf24;">Crypto & Auto-Responder 👑</h1>
+                    <p>Automate your sales and crypto payments via tickets.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_premium_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(245, 158, 11, 0.2);">
+                            <input type="checkbox" name="auto_responder_enabled" id="auto_responder_enabled" {% if guild.config.get('auto_responder_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #f59e0b;">
+                            <label for="auto_responder_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Basic Auto-Responder (Hardcoded Keywords)</label>
+                        </div>
+
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:30px; background: rgba(59, 130, 246, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <input type="checkbox" name="ai_support_enabled" id="ai_support_enabled" {% if guild.config.get('ai_support_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #3b82f6;">
+                            <label for="ai_support_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Gemini AI Support Agent ✨</label>
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-20px; margin-bottom:20px;">If enabled, the bot will use Gemini AI to read previous messages and intelligently reply to users in ANY language.</p>
+
+                        <div class="form-group">
+                            <label class="label">Crypto Address (BTC)</label>
+                            <input type="text" name="crypto_address" class="input-field" placeholder="e.g. bc1q..." value="{{ guild.config.get('crypto_address', '') }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">This address will be sent to users who ask to pay via crypto.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Binance Pay ID</label>
+                            <input type="text" name="binance_id" class="input-field" placeholder="e.g. 1247871004" value="{{ guild.config.get('binance_id', '') }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Sent when users ask for Binance payment.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">bKash Personal Number</label>
+                            <input type="text" name="bkash_number" class="input-field" placeholder="e.g. 01858182283" value="{{ guild.config.get('bkash_number', '') }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Sent when users ask for bKash payment.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#f59e0b; color:#000;">Save Premium Config</button>
+                    </form>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px; margin-top:30px;">
+                    <h2 style="color: #fbbf24; margin-bottom: 20px; font-size: 1.2rem;">Custom Auto-Responders</h2>
+                    
+                    <div style="margin-bottom: 25px;">
+                        {% set custom_responses = guild.config.get('custom_responses', []) %}
+                        {% if custom_responses %}
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 15px;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding: 10px; color: var(--text-muted);">Keywords</th>
+                                        <th style="padding: 10px; color: var(--text-muted);">Reply</th>
+                                        <th style="padding: 10px; color: var(--text-muted); width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for res in custom_responses %}
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <td style="padding: 10px; font-family: monospace; color: #f59e0b;">{{ res.keywords }}</td>
+                                        <td style="padding: 10px; color: var(--text-main); font-size: 0.9rem;">{{ res.reply[:50] }}...</td>
+                                        <td style="padding: 10px;">
+                                            <form action="/delete_custom_response/{{ guild.id }}/{{ loop.index0 }}" method="POST" style="margin:0;">
+                                                <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline;">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">No custom responses added yet.</p>
+                        {% endif %}
+                    </div>
+
+                    <form action="/add_custom_response" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group">
+                            <label class="label">Trigger Keywords (Comma separated)</label>
+                            <input type="text" name="keywords" class="input-field" placeholder="e.g. ltc, buy cheat, how to pay" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="label">Reply Message</label>
+                            <textarea name="reply" class="input-field" placeholder="e.g. Please send the payment to..." rows="3" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#3b82f6;">Add Custom Response</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: SPY LOGS & TRANSCRIPTS -->
+            <div id="section-logs" class="settings-section">
+                <div class="header-title">
+                    <h1 style="color: #ef4444;">Spy Logs & Transcripts 🕵️‍♂️</h1>
+                    <p>Keep track of deleted messages, edited messages, and save all closed tickets.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_logs_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group">
+                            <label class="label">Spy Log Channel (Deleted/Edited Messages)</label>
+                            <select name="log_channel_id" class="input-field">
+                                <option value="">Disabled</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('log_channel_id') == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Ticket Transcripts Channel</label>
+                            <select name="transcripts_channel_id" class="input-field">
+                                <option value="">Disabled</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}" {% if guild.config.get('transcripts_channel_id') == ch.id|string %}selected{% endif %}>#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Whenever a ticket is closed, an HTML transcript will be saved here.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#ef4444;">Save Spy & Log Config</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: AUTOMOD SETTINGS -->
+            <div id="section-automod" class="settings-section">
+                <div class="header-title">
+                    <h1 style="color: #3b82f6;">Auto-Moderator Settings 🛡️</h1>
+                    <p>Keep your channels clean from link spam, bad words, and toxicity.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/set_automod_config" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(59, 130, 246, 0.1); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <input type="checkbox" name="automod_enabled" id="automod_enabled" {% if guild.config.get('automod_enabled') %}checked{% endif %} style="width:20px; height:20px; accent-color: #3b82f6;">
+                            <label for="automod_enabled" class="label" style="margin:0; font-size:1rem; color: var(--text-main);">Enable Auto-Moderator</label>
+                        </div>
+
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.05);">
+                            <input type="checkbox" name="automod_block_links" id="automod_block_links" {% if guild.config.get('automod_block_links') %}checked{% endif %} style="width:16px; height:16px; accent-color: #3b82f6;">
+                            <label for="automod_block_links" class="label" style="margin:0; font-size:0.95rem; color: var(--text-main);">Block Links (e.g. http://, https://, discord.gg/)</label>
+                        </div>
+
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.05);">
+                            <input type="checkbox" name="automod_block_badwords" id="automod_block_badwords" {% if guild.config.get('automod_block_badwords') %}checked{% endif %} style="width:16px; height:16px; accent-color: #3b82f6;">
+                            <label for="automod_block_badwords" class="label" style="margin:0; font-size:0.95rem; color: var(--text-main);">Block Swear/Bad Words (Gala Gali)</label>
+                        </div>
+
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+                            <input type="checkbox" name="automod_ai_enabled" id="automod_ai_enabled" {% if guild.config.get('automod_ai_enabled') %}checked{% endif %} style="width:16px; height:16px; accent-color: #ef4444;">
+                            <label for="automod_ai_enabled" class="label" style="margin:0; font-size:0.95rem; color: var(--text-main);">Enable AI-powered Toxicity & Slang Detection (Gemini/Groq)</label>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Use the AI model to analyze messages for toxic context and slangs that bypass simple word list filters.</p>
+
+                        <div class="form-group">
+                            <label class="label">Custom Swear/Bad Words List (Comma separated)</label>
+                            <textarea name="automod_badwords" class="input-field" rows="3" placeholder="e.g. fuck, bitch, badword1, badword2">{{ guild.config.get('automod_badwords', '') }}</textarea>
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Add custom words here, separated by commas.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Moderation Action</label>
+                            <select name="automod_action" class="input-field">
+                                <option value="delete" {% if guild.config.get('automod_action') == 'delete' %}selected{% endif %}>Delete Message Only</option>
+                                <option value="delete_and_warn" {% if guild.config.get('automod_action') == 'delete_and_warn' %}selected{% endif %}>Delete and Warn User in Chat</option>
+                                <option value="timeout_3_warnings" {% if guild.config.get('automod_action') == 'timeout_3_warnings' %}selected{% endif %}>Delete, Warn & Timeout on 3 Warnings (10 mins)</option>
+                            </select>
+                        </div>
+
+                        <hr style="border:0; border-top:1px solid var(--border); margin: 25px 0;">
+                        <h3 style="color: #3b82f6; margin-bottom: 15px; font-size:1.1rem;">Anti-Alt Protection (Anti-Raid) 🛡️</h3>
+                        
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; margin-bottom:15px; background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.1);">
+                            <input type="checkbox" name="anti_alt_enabled" id="anti_alt_enabled" {% if guild.config.get('anti_alt_enabled') %}checked{% endif %} style="width:16px; height:16px; accent-color: #3b82f6;">
+                            <label for="anti_alt_enabled" class="label" style="margin:0; font-size:0.95rem; color: var(--text-main);">Enable Anti-Alt Account Protection</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Minimum Account Age (in Days)</label>
+                            <input type="number" name="anti_alt_days" class="input-field" min="1" max="90" value="{{ guild.config.get('anti_alt_days', 7) }}">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:6px;">Accounts younger than this age will be automatically kicked on join. Default is 7 days.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#3b82f6;">Save AutoMod Config</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: EMBED SENDER -->
+            <div id="section-embed-sender" class="settings-section">
+                <div class="header-title">
+                    <h1>Embed Sender</h1>
+                    <p>Send pre-made templates or a customized premium embed to any channel in your server.</p>
+                </div>
+
+                <div class="settings-panel" style="max-width: 700px;">
+                    <form action="/web_send_embed" method="POST">
+                        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+                        {% if is_super_admin %}
+                        <input type="hidden" name="is_super_admin" value="true">
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label class="label">Target Channel</label>
+                            <select name="channel_id" required class="input-field">
+                                <option value="" disabled selected>Select channel...</option>
+                                {% for ch in guild.channels %}
+                                    <option value="{{ ch.id }}">#{{ ch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Use a Pre-made Template</label>
+                            <select name="template" class="input-field" id="web_template_select" onchange="toggleCustomFields()">
+                                <option value="">None (Custom Embed)</option>
+                                <option value="basic-panel">Basic-Panel Template</option>
+                                <option value="premium-panel">Premium-Panel Template</option>
+                                <option value="uid-bypass">Uid-Bypass Template</option>
+                            </select>
+                        </div>
+
+                        <div id="custom-embed-fields">
+                            <div class="form-group">
+                                <label class="label">Embed Title</label>
+                                <input type="text" name="title" class="input-field" placeholder="Embed Title">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Embed Description (Use \n for newlines)</label>
+                                <textarea name="description" class="input-field" rows="5" placeholder="Embed Description"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label">Hex Color Code</label>
+                                <input type="text" name="color" class="input-field" placeholder="#3498db" value="#3498db">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Large Banner Image URL (Optional - Overrides Template)</label>
+                            <input type="url" name="image_url" class="input-field" placeholder="https://...">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label">Thumbnail Logo URL (Optional - Overrides Template)</label>
+                            <input type="url" name="thumbnail_url" class="input-field" placeholder="https://...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px; background-color:#3b82f6;">Send Embed</button>
+                    </form>
+                </div>
+            </div>
+            
+            <script>
+                function toggleCustomFields() {
+                    const templateSelect = document.getElementById('web_template_select');
+                    const customFieldsDiv = document.getElementById('custom-embed-fields');
+                    if (templateSelect.value !== '') {
+                        customFieldsDiv.style.display = 'none';
+                    } else {
+                        customFieldsDiv.style.display = 'block';
+                    }
+                }
+                // Initial run
+                toggleCustomFields();
+            </script>
+ 
+            {% endif %}
+
+        </main>
+    </div>
+
+    <script>
+        function switchSection(btnElement, targetId) {
+            // Update sidebar nav links
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Update visible sections
+            document.querySelectorAll('.settings-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

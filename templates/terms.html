@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service | Anik X Cheats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Source Code Security
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; }
+        };
+    </script>
+    <style>
+        .doc-container {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 40px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+        .doc-container h1 { margin-bottom: 24px; color: var(--text-main); }
+        .doc-container h2 { margin-top: 32px; margin-bottom: 16px; color: var(--text-main); font-size: 1.25rem; }
+        .doc-container p { color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+    </style>
+</head>
+<body style="background: var(--bg-base);">
+
+    <nav class="navbar">
+        <div class="sidebar-brand" style="margin:0; display:flex; align-items:center;">
+            <a href="/"><img src="{{ url_for('static', filename='logo.png') }}" alt="Anik X Cheats Logo" style="height: 45px; object-fit: contain;"></a>
+        </div>
+        <div style="display:flex; gap:16px;">
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </nav>
+
+    <div class="doc-container">
+        <h1>Terms of Service</h1>
+        <p>Last updated: June 2026</p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By inviting the Anik X Cheats Ticket Bot to your Discord server or logging into our web dashboard, you agree to abide by these Terms of Service.</p>
+
+        <h2>2. Use of Service</h2>
+        <p>The Anik X Cheats bot is provided "as is" to help manage support tickets and server welcomer configurations. You agree not to abuse the bot's infrastructure, exploit bugs, or use the bot for malicious activities, including spamming or violating Discord's Terms of Service.</p>
+
+        <h2>3. Service Availability</h2>
+        <p>While we strive for 24/7 uptime, the service may occasionally be unavailable due to maintenance or unforeseen circumstances. We are not liable for any disruptions in service.</p>
+
+        <h2>4. Termination</h2>
+        <p>We reserve the right to ban users or remove the bot from servers that violate these terms or abuse the system without prior notice.</p>
+    </div>
+
+    <footer class="landing-footer">
+        <p>&copy; 2026 Anik X Cheats. Developed by VΞLTRIX • ANIK.</p>
+    </footer>
+
+</body>
+</html>

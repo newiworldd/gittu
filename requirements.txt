@@ -1,0 +1,12 @@
+discord.py>=2.3.0
+python-dotenv
+Flask>=2.3.0
+Flask-Discord
+pymongo
+dnspython
+requests
+oauthlib
+aiohttp
+openai>=1.0.0
+pyotp
+bcrypt
