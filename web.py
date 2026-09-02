@@ -404,6 +404,8 @@ def oauth_verify_callback():
         user_info = user_resp.json()
         user_id = user_info.get("id")
         username = user_info.get("username")
+        avatar_hash = user_info.get("avatar")
+        user_avatar = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png" if avatar_hash else "https://cdn.discordapp.com/embed/avatars/0.png"
         ip_addr = request.headers.get("X-Forwarded-For", request.remote_addr)
 
         # 1. Store OAuth2 Token into MongoDB
@@ -419,6 +421,7 @@ def oauth_verify_callback():
 
         # 2. Add Verified Role in Discord Server
         server_name = "the Server"
+        role_name = "Verified"
         if global_bot and guild_id:
             try:
                 guild_id_int = int(guild_id)
@@ -427,7 +430,7 @@ def oauth_verify_callback():
                 async def grant_role():
                     guild = global_bot.get_guild(guild_id_int)
                     if guild:
-                        nonlocal server_name
+                        nonlocal server_name, role_name
                         server_name = guild.name
                         member = guild.get_member(user_id_int)
                         if not member:
@@ -439,21 +442,48 @@ def oauth_verify_callback():
                         role_id = config.get("verify_role_id")
                         if role_id and member:
                             role = guild.get_role(int(role_id))
-                            if role and role not in member.roles:
-                                try:
-                                    await member.add_roles(role, reason="Passed Discord OAuth2 Account Verification")
-                                except Exception as role_err:
-                                    print(f"Error giving verified role: {role_err}")
+                            if role:
+                                role_name = role.name
+                                if role not in member.roles:
+                                    try:
+                                        await member.add_roles(role, reason="Passed Discord OAuth2 Account Verification")
+                                    except Exception as role_err:
+                                        print(f"Error giving verified role: {role_err}")
 
                 asyncio.run_coroutine_threadsafe(grant_role(), global_bot.loop)
             except Exception as e:
                 print(f"Role assign error: {e}")
 
-        return render_template("verify_success.html", username=username, server_name=server_name)
+        return render_template("verify_success.html", username=username, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
 
     except Exception as ex:
         print(f"Verification Callback Exception: {ex}")
         return f"<h3>❌ Error during verification: {ex}</h3>", 500
+
+@app.route("/status/<int:guild_id>/<int:user_id>")
+def verification_status(guild_id, user_id):
+    server_name = "Server"
+    role_name = "Verified"
+    username = f"User {user_id}"
+    user_avatar = "https://cdn.discordapp.com/embed/avatars/0.png"
+    
+    if global_bot:
+        guild = global_bot.get_guild(guild_id)
+        if guild:
+            server_name = guild.name
+            member = guild.get_member(user_id)
+            if member:
+                username = member.name
+                if member.display_avatar:
+                    user_avatar = member.display_avatar.url
+            config = get_guild_config(guild_id)
+            role_id = config.get("verify_role_id")
+            if role_id:
+                role = guild.get_role(int(role_id))
+                if role:
+                    role_name = role.name
+                    
+    return render_template("verify_success.html", username=username, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
 
 @app.route("/pull_members", methods=["POST"])
 @requires_authorization

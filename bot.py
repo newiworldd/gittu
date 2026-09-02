@@ -12,52 +12,21 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # ---------- Verification View ----------
-class VerificationButtonView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
+# ---------- Verification View ----------
+def create_verify_view(guild_id: int):
+    base_url = os.getenv("DISCORD_REDIRECT_URI", "").replace("/callback", "").rstrip("/")
+    if not base_url:
+        base_url = "https://verify.anikxcheatx.com"
+    verify_url = f"{base_url}/verify/{guild_id}"
 
-    @discord.ui.button(
-        label="Verify Now", 
-        style=discord.ButtonStyle.green, 
-        emoji="🛡️", 
-        custom_id="server_verification_button"
-    )
-    async def verify_button_click(self, interaction: discord.Interaction, button: discord.ui.Button):
-        guild = interaction.guild
-        if not guild:
-            return await interaction.response.send_message("❌ Verification only works inside a server.", ephemeral=True)
-
-        guild_config = get_guild_config(guild.id)
-        role_id = guild_config.get("verify_role_id")
-        
-        if not role_id:
-            return await interaction.response.send_message("❌ Verification role is not configured by server administrators yet.", ephemeral=True)
-
-        role = guild.get_role(int(role_id))
-        if not role:
-            return await interaction.response.send_message("❌ Configured verification role was not found in this server.", ephemeral=True)
-
-        base_url = os.getenv("DISCORD_REDIRECT_URI", "").replace("/callback", "").rstrip("/")
-        if not base_url:
-            base_url = "http://127.0.0.1:5000"
-        verify_url = f"{base_url}/verify/{guild.id}"
-
-        view = discord.ui.View()
-        view.add_item(discord.ui.Button(
-            label="Click to Authorize & Verify",
-            url=verify_url,
-            style=discord.ButtonStyle.link,
-            emoji="🔗"
-        ))
-
-        embed = discord.Embed(
-            title="🛡️ Discord Account Verification",
-            description=f"Hey {interaction.user.mention}! To verify and unlock access to **{guild.name}**, click the link button below to authorize with Discord.\n\n🔒 **What this does:**\n• Verifies your Discord account\n• Grants you the **{role.name}** role automatically\n• Protects against raids & alt accounts",
-            color=0x2ecc71
-        )
-        embed.set_footer(text=f"{guild.name} • OAuth2 Security System")
-        embed.timestamp = discord.utils.utcnow()
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    view = discord.ui.View(timeout=None)
+    view.add_item(discord.ui.Button(
+        label="Verify Now",
+        url=verify_url,
+        style=discord.ButtonStyle.link,
+        emoji="🛡️"
+    ))
+    return view
 
 class WelcomeDMBot(commands.Bot):
     def __init__(self):
@@ -68,7 +37,6 @@ class WelcomeDMBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        self.add_view(VerificationButtonView())  # persistent verification view
         self.loop.create_task(self.tree.sync())  # background sync
         self.status_task.start()
 
@@ -396,7 +364,7 @@ async def send_verify_panel_cmd(interaction: discord.Interaction, channel: disco
     embed.set_footer(text=f"Anik X Suite • {guild.name} Security")
     embed.timestamp = discord.utils.utcnow()
 
-    await target_channel.send(embed=embed, view=VerificationButtonView())
+    await target_channel.send(embed=embed, view=create_verify_view(guild.id))
     await interaction.response.send_message(f"✅ Verification panel sent to {target_channel.mention}!", ephemeral=True)
 
 async def trigger_verify_panel_send(guild_id: int, channel_id: int):
@@ -428,7 +396,7 @@ async def trigger_verify_panel_send(guild_id: int, channel_id: int):
         embed.set_footer(text=f"Anik X Suite • {guild.name} Security")
         embed.timestamp = discord.utils.utcnow()
 
-        await channel.send(embed=embed, view=VerificationButtonView())
+        await channel.send(embed=embed, view=create_verify_view(guild.id))
 
 def handle_verify_panel_request(guild_id: int, channel_id: int):
     asyncio.run_coroutine_threadsafe(trigger_verify_panel_send(guild_id, channel_id), bot.loop)
@@ -455,5 +423,8 @@ if __name__ == "__main__":
         set_verify_callback(handle_verify_panel_request)
         # Start Flask Web Dashboard concurrently
         run_web(bot)
-        print("🤖 [Discord Bot] Connecting to Discord Gateway...", flush=True)
-        bot.run(TOKEN)
+        print("🤖 [Discord Bot] Starting bot runner...", flush=True)
+        try:
+            asyncio.run(start_bot_with_retry())
+        except (KeyboardInterrupt, SystemExit):
+            print("Bot shutdown gracefully.")
