@@ -12,17 +12,26 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # ---------- Verification View ----------
-# ---------- Verification View ----------
 def create_verify_view(guild_id: int):
-    base_url = os.getenv("DISCORD_REDIRECT_URI", "").replace("/callback", "").rstrip("/")
-    if not base_url:
-        base_url = "https://verify.anikxcheatx.com"
-    verify_url = f"{base_url}/verify/{guild_id}"
+    client_id = os.getenv("DISCORD_CLIENT_ID", "")
+    base_redirect = os.getenv("DISCORD_REDIRECT_URI", "").replace("/callback", "").rstrip("/")
+    if not base_redirect:
+        base_redirect = "https://verify.anikxcheatx.com"
+    redirect_uri = f"{base_redirect}/verify/callback"
+
+    params = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": "identify guilds.join",
+        "state": str(guild_id)
+    }
+    discord_oauth_url = "https://discord.com/oauth2/authorize?" + urllib.parse.urlencode(params)
 
     view = discord.ui.View(timeout=None)
     view.add_item(discord.ui.Button(
         label="Verify Now",
-        url=verify_url,
+        url=discord_oauth_url,
         style=discord.ButtonStyle.link,
         emoji="🛡️"
     ))

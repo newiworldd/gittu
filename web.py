@@ -454,7 +454,7 @@ def oauth_verify_callback():
             except Exception as e:
                 print(f"Role assign error: {e}")
 
-        return render_template("verify_success.html", username=username, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
+        return render_template("verify_success.html", username=username, user_id=user_id, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
 
     except Exception as ex:
         print(f"Verification Callback Exception: {ex}")
@@ -483,7 +483,7 @@ def verification_status(guild_id, user_id):
                 if role:
                     role_name = role.name
                     
-    return render_template("verify_success.html", username=username, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
+    return render_template("verify_success.html", username=username, user_id=user_id, user_avatar=user_avatar, server_name=server_name, role_name=role_name)
 
 @app.route("/pull_members", methods=["POST"])
 @requires_authorization
