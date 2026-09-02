@@ -69,7 +69,7 @@ class WelcomeDMBot(commands.Bot):
 
     async def setup_hook(self):
         self.add_view(VerificationButtonView())  # persistent verification view
-        await self.tree.sync()
+        self.loop.create_task(self.tree.sync())  # background sync
         self.status_task.start()
 
     @tasks.loop(minutes=2)
@@ -87,10 +87,10 @@ class WelcomeDMBot(commands.Bot):
         await self.wait_until_ready()
 
     async def on_ready(self):
-        print(f"==================================================")
-        print(f"🚀 [Welcome & DM Bot] Logged in as: {self.user} (ID: {self.user.id})")
-        print(f"🌐 Serving {len(self.guilds)} Guilds")
-        print(f"==================================================")
+        print(f"==================================================", flush=True)
+        print(f"🚀 [Welcome & DM Bot] Logged in as: {self.user} (ID: {self.user.id})", flush=True)
+        print(f"🌐 Serving {len(self.guilds)} Guilds", flush=True)
+        print(f"==================================================", flush=True)
 
     async def on_member_join(self, member: discord.Member):
         if member.bot:
@@ -450,12 +450,10 @@ async def start_bot_with_retry():
 
 if __name__ == "__main__":
     if not TOKEN:
-        print("❌ Error: DISCORD_TOKEN is missing from .env file!")
+        print("❌ Error: DISCORD_TOKEN is missing from .env file!", flush=True)
     else:
         set_verify_callback(handle_verify_panel_request)
         # Start Flask Web Dashboard concurrently
         run_web(bot)
-        try:
-            asyncio.run(start_bot_with_retry())
-        except (KeyboardInterrupt, SystemExit):
-            print("Bot shutdown gracefully.")
+        print("🤖 [Discord Bot] Connecting to Discord Gateway...", flush=True)
+        bot.run(TOKEN)
