@@ -377,14 +377,30 @@ async def send_verify_panel_cmd(interaction: discord.Interaction, channel: disco
     await interaction.response.send_message(f"✅ Verification panel sent to {target_channel.mention}!", ephemeral=True)
 
 async def trigger_verify_panel_send(guild_id: int, channel_id: int):
-    guild = bot.get_guild(guild_id)
-    channel = bot.get_channel(channel_id)
-    if not channel and guild:
-        try:
-            channel = await guild.fetch_channel(channel_id)
-        except:
-            pass
-    if channel and guild:
+    try:
+        print(f"🚀 [Verify Panel] Sending verification panel to Guild: {guild_id}, Channel: {channel_id}...", flush=True)
+        guild = bot.get_guild(guild_id)
+        if not guild:
+            try:
+                guild = await bot.fetch_guild(guild_id)
+            except Exception as ge:
+                print(f"❌ [Verify Panel] Guild fetch error: {ge}", flush=True)
+                
+        if not guild:
+            print(f"❌ [Verify Panel] Bot is not in guild {guild_id}!", flush=True)
+            return
+
+        channel = guild.get_channel(channel_id)
+        if not channel:
+            try:
+                channel = await bot.fetch_channel(channel_id)
+            except Exception as ce:
+                print(f"❌ [Verify Panel] Channel fetch error: {ce}", flush=True)
+
+        if not channel:
+            print(f"❌ [Verify Panel] Channel {channel_id} not found!", flush=True)
+            return
+
         guild_config = get_guild_config(guild_id)
         title = guild_config.get("verify_title") or f"🛡️ {guild.name} Member Verification"
         desc = guild_config.get("verify_description") or f"Welcome to **{guild.name}**!\n\nClick the **Verify Now** button below to get access to all channels."
@@ -406,9 +422,17 @@ async def trigger_verify_panel_send(guild_id: int, channel_id: int):
         embed.timestamp = discord.utils.utcnow()
 
         await channel.send(embed=embed, view=create_verify_view(guild.id))
+        print(f"✅ [Verify Panel] Successfully sent verification panel to #{channel.name} ({channel.id})!", flush=True)
+    except discord.Forbidden:
+        print(f"❌ [Verify Panel] Missing Permission: Bot needs 'Send Messages' and 'Embed Links' in channel {channel_id}!", flush=True)
+    except Exception as e:
+        print(f"❌ [Verify Panel] Error sending panel: {e}", flush=True)
 
 def handle_verify_panel_request(guild_id: int, channel_id: int):
-    asyncio.run_coroutine_threadsafe(trigger_verify_panel_send(guild_id, channel_id), bot.loop)
+    if bot.loop and bot.loop.is_running():
+        asyncio.run_coroutine_threadsafe(trigger_verify_panel_send(guild_id, channel_id), bot.loop)
+    else:
+        print("❌ [Verify Panel] Bot event loop is not running yet!", flush=True)
 
 async def start_bot_with_retry():
     while True:
